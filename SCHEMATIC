@@ -1,0 +1,178 @@
+DESIGN / SCHEMATIC / BLOCK DIAGRAM
+
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: AMEET KUMAR SAHOO
+// 
+// Create Date: 06.07.2026 12:51:16
+// Design Name: 
+// Module Name: water_lvl_controller
+// Project Name: water_lvl_controller
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+/////////////////////////////////////////////////////////////////////////////////
+module water_lvl_controller(
+  input clk,
+  input rst,
+
+  input sensor30,
+  input sensor60,
+  input sensor90,
+
+  output reg motor,
+
+  output reg led30,
+  output reg led60,
+  output reg led90,
+  output reg ledFill,
+  output reg ledDrain
+    );
+
+parameter [1:0] EMPTY  = 2'b00;
+parameter [1:0] FILL30 = 2'b01;
+parameter [1:0] FILL60 = 2'b10;
+parameter [1:0] FULL   = 2'b11;
+
+reg [1:0] present_state;
+reg [1:0] next_state;
+
+
+
+
+always @ (posedge clk or posedge rst) begin
+    if (rst)
+        present_state <= EMPTY;
+    else 
+        present_state <= next_state;
+end
+
+always @ (*)
+begin
+  case(present_state)
+
+// FOR EMPTY STATE
+    EMPTY:
+      begin
+        if (sensor30)
+          next_state = FILL30;
+        else
+          next_state = EMPTY;
+      end
+
+
+// FOR FILL UPTO 30%
+    FILL30:
+      begin
+         if(sensor60)
+            next_state = FILL60;
+         else if(!sensor30)
+            next_state = EMPTY;
+        else
+            next_state = FILL30;
+      end
+      
+      
+// FOR FILLUP UPTO 60%      
+
+     FILL60:
+        begin
+            if(sensor90)
+                next_state = FULL;
+            else if(!sensor60)
+                next_state = FILL30;
+            else
+                next_state = FILL60;
+        end
+
+
+
+// FOR FULL TANK
+    FULL:
+      begin
+        if(!sensor90)
+          next_state = FILL60;
+        else
+          next_state = FULL;
+      end
+  
+  default:
+      next_state = EMPTY;
+  endcase
+end
+
+
+// Output Logic
+
+  
+always @ (posedge clk or posedge rst)
+begin
+    if (rst)
+        motor <= 1'b0;
+    else if(next_state == FULL)
+         motor <= 1'b0;
+    else if (next_state == EMPTY)
+          motor <= 1'b1;
+    else
+      motor <= motor;
+      
+end
+always @(*) begin
+    led30 = sensor30;
+    led60 = sensor60;
+    led90 = sensor90;
+    ledFill = 1'b0;
+    ledDrain = 1'b0;
+    
+    case(present_state)
+        EMPTY:
+        begin
+            ledFill = 1'b1;
+            ledDrain = 1'b0;
+        end
+        
+        FILL30:begin
+            if(motor) begin
+                ledFill = 1'b1;
+                ledDrain = 1'b0;
+                end
+            else
+            begin
+                ledFill = 1'b0;
+                ledDrain = 1'b1;
+            end
+            end
+            
+            
+        FILL60:begin
+            if(motor) begin
+                ledFill = 1'b1;
+                ledDrain = 1'b0;
+                end
+            else
+            begin
+                ledFill = 1'b0;
+                ledDrain = 1'b1;
+            end
+            end
+                
+                
+        FULL:
+           begin
+                ledFill = 1'b0;
+                ledDrain = 1'b0;
+                end
+           
+      endcase
+    end
+                 
+endmodule
+
