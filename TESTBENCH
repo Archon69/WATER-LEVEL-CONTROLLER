@@ -1,0 +1,88 @@
+TESTBENCH
+
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: AMEET KUMAR SAHOO
+// 
+// Create Date: 06.07.2026 13:41:49
+// Design Name: 
+// Module Name: testbench
+// Project Name: water_lvl_controller
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module testbench;
+reg clk;
+reg rst;
+
+reg sensor30;
+reg sensor60;
+reg sensor90;
+
+wire motor;
+wire led30;
+wire led60;
+wire led90;
+wire ledFill;
+wire ledDrain;
+
+
+water_lvl_controller UUT (.clk(clk),
+                            .rst(rst),
+                            .sensor30(sensor30),
+                            .sensor60(sensor60),
+                            .sensor90(sensor90),
+                            .motor(motor),
+                            .led30(led30),
+                            .led60(led60),
+                            .led90(led90),
+                            .ledFill(ledFill),
+                            .ledDrain(ledDrain));
+initial clk = 0;
+always #5 clk = ~clk;
+
+initial
+    begin
+        $monitor("Time=%0t,state=%b,sensor30=%b,sensor60=%b,sensor90=%b,motor=%b,led30=%b,led60=%b,led90=%b,ledFill=%b,ledDrain=%b",
+        $time,UUT.present_state,sensor30,sensor60,sensor90,motor,led30,led60,led90,ledFill,ledDrain);
+        rst = 1;
+        sensor30 = 0; 
+        sensor60 = 0; 
+        sensor90 = 0;
+        #12;
+        
+        
+        rst = 0; #3; 
+        
+        sensor30 = 0; #20;
+        sensor60 = 0; #20;
+        sensor90 = 0; #20;
+        
+                 
+
+        sensor30 = 1; #20;
+        sensor60 = 1; #20;
+        sensor90 = 1; #20;
+    
+        sensor90 = 0; #20;
+        sensor60 = 0; #20;
+        sensor30 = 0; #20;
+    
+        sensor30 = 1; #20;
+        sensor60 = 1; #20;
+        sensor90 = 1; #20;
+
+        #40 $finish;
+    end
+endmodule
